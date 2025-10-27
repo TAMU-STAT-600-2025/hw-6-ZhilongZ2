@@ -3,6 +3,7 @@
 library(Rcpp)
 library(RcppArmadillo)
 library(testthat)
+library(microbenchmark)
 
 # Source your C++ funcitons
 sourceCpp("LassoInC.cpp")
@@ -69,12 +70,76 @@ expect_equal(as.numeric(beta_c2), as.numeric(beta_r2), tolerance = 1e-6)
 
 # Do microbenchmark on fitLASSOstandardized vs fitLASSOstandardized_c
 ######################################################################
+n <- 500
+p <- 100
+
+X <- matrix(rnorm(n * p), n, p)
+X <- scale(X, center = TRUE, scale = TRUE)
+Y <- rnorm(n)
+Y <- Y - mean(Y)
+
+lambda <- 0.1
+beta_start <- numeric(p)
+
+mb <- microbenchmark(
+  R    = fitLASSOstandardized(X, Y, lambda, beta_start = beta_start)$beta,
+  Cpp  = fitLASSOstandardized_c(X, Y, lambda, beta_start),
+  times = 50L, unit = "ms"
+)
+
+print(mb)
+summary(mb)
 
 # Do at least 2 tests for fitLASSOstandardized_seq function below. You are checking output agreements on at least 2 separate inputs
 #################################################
+test_that("fitLASSOstandardized_seq_c matches R on a small deterministic example", {
+  X1 <- scale(matrix(c(1,2,3,4,5,6,7,8,9,10,11,12), nrow = 4), center = TRUE, scale = TRUE)
+  Y1 <- scale(c(1, 0, 2, -1), center = TRUE, scale = FALSE)
+  
+  lam1 <- c(1.0, 0.5, 0.2)
+  
+  res_R  <- fitLASSOstandardized_seq(X1, Y1, lambda_seq = lam1, eps = 1e-6)
+  B_R    <- res_R$beta_mat
+  B_Cpp  <- fitLASSOstandardized_seq_c(X1, Y1, lam1, eps = 1e-6)
+  
+  expect_equal(as.matrix(B_Cpp), as.matrix(B_R), tolerance = 1e-6)
+})
+
+test_that("fitLASSOstandardized_seq_c matches R on a random example", {
+  n <- 8; p <- 5
+  X2 <- scale(matrix(rnorm(n * p), nrow = n), center = TRUE, scale = TRUE)
+  Y2 <- scale(rnorm(n), center = TRUE, scale = FALSE)
+  
+  lam2 <- exp(seq(log(0.8), log(0.05), length.out = 6))
+  
+  res_R  <- fitLASSOstandardized_seq(X2, Y2, lambda_seq = lam2, eps = 1e-6)
+  B_R    <- res_R$beta_mat
+  B_Cpp  <- fitLASSOstandardized_seq_c(X2, Y2, lam2, eps = 1e-6)
+  
+  expect_equal(as.matrix(B_Cpp), as.matrix(B_R), tolerance = 1e-6)
+})
 
 # Do microbenchmark on fitLASSOstandardized_seq vs fitLASSOstandardized_seq_c
 ######################################################################
+n <- 400
+p <- 120
+
+X <- matrix(rnorm(n * p), n, p)
+X <- scale(X, center = TRUE, scale = TRUE)
+Y <- rnorm(n)
+Y <- Y - mean(Y)
+
+lambda_seq <- exp(seq(log(0.8), log(0.05), length.out = 8))
+
+mb <- microbenchmark(
+  R_seq   = fitLASSOstandardized_seq(X, Y, lambda_seq = lambda_seq, eps = 1e-6)$beta_mat,
+  Cpp_seq = fitLASSOstandardized_seq_c(X, Y, lambda_seq, eps = 1e-6),
+  times = 30L,
+  unit = "ms"
+)
+
+print(mb)
+summary(mb)
 
 # Tests on riboflavin data
 ##########################
