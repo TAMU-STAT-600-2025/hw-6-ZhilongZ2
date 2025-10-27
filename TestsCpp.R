@@ -143,7 +143,8 @@ summary(mb)
 
 # Tests on riboflavin data
 ##########################
-require(hdi) # this should install hdi package if you don't have it already; otherwise library(hdi)
+# require(hdi) # this should install hdi package if you don't have it already; otherwise library(hdi)
+library(hdi)
 data(riboflavin) # this puts list with name riboflavin into the R environment, y - outcome, x - gene erpression
 
 # Make sure riboflavin$x is treated as matrix later in the code for faster computations
