@@ -45,6 +45,27 @@ test_that("lasso_c matches R lasso() on simple numeric inputs", {
 
 # Do at least 2 tests for fitLASSOstandardized function below. You are checking output agreements on at least 2 separate inputs
 #################################################
+test_that("fitLASSOstandardized_c matches R fitLASSOstandardized on small inputs", {
+# Test 1
+X1 <- scale(matrix(c(1, 2, 3, 4, 5, 6), nrow = 3), center = TRUE, scale = TRUE)
+Y1 <- scale(c(1, 2, 3), center = TRUE, scale = FALSE)
+lambda1 <- 0.1
+beta_start1 <- numeric(ncol(X1))
+
+beta_r1 <- fitLASSOstandardized(X1, Y1, lambda1, beta_start = beta_start1)$beta
+beta_c1 <- fitLASSOstandardized_c(X1, Y1, lambda1, beta_start1)
+expect_equal(as.numeric(beta_c1), as.numeric(beta_r1), tolerance = 1e-6)
+
+# Test 2
+X2 <- scale(matrix(rnorm(15), nrow = 5), center = TRUE, scale = TRUE)
+Y2 <- scale(rnorm(5), center = TRUE, scale = FALSE)
+lambda2 <- 0.2
+beta_start2 <- numeric(ncol(X2))
+
+beta_r2 <- fitLASSOstandardized(X2, Y2, lambda2, beta_start = beta_start2)$beta
+beta_c2 <- fitLASSOstandardized_c(X2, Y2, lambda2, beta_start2)
+expect_equal(as.numeric(beta_c2), as.numeric(beta_r2), tolerance = 1e-6)
+})
 
 # Do microbenchmark on fitLASSOstandardized vs fitLASSOstandardized_c
 ######################################################################
