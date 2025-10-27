@@ -42,7 +42,7 @@ arma::colvec fitLASSOstandardized_c(const arma::mat& Xtilde, const arma::colvec&
 
     for (arma::uword j = 0; j < p; ++j) {
       const arma::colvec xj = Xtilde.col(j);
-      const double zj = beta(j) + arma::dot(xj, r) / static_cast<double>(n);
+      const double zj = beta(j) + arma::dot(xj, r) / n;
       const double beta_new_j = soft_c(zj, lambda);
 
       const double delta = beta(j) - beta_new_j;

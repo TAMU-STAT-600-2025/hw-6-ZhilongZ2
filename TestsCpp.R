@@ -2,20 +2,46 @@
 # Header for Rcpp and RcppArmadillo
 library(Rcpp)
 library(RcppArmadillo)
+library(testthat)
 
 # Source your C++ funcitons
 sourceCpp("LassoInC.cpp")
 
 # Source your LASSO functions from HW4 (make sure to move the corresponding .R file in the current project folder)
-source("LassoFunctions.R")
+source("D:/25 Fall TAMU/STAT 600/hw-4-ZhilongZ2/LassoFunctions.R")
 
 # Do at least 2 tests for soft-thresholding function below. You are checking output agreements on at least 2 separate inputs
 #################################################
+test_that("soft_c matches R soft() on simple scalar inputs", {
+  expect_equal(soft_c(3, 1),  soft(3, 1))
+  expect_equal(soft_c(-2, 0.5), soft(-2, 0.5))
+})
+
+test_that("soft_c returns 0 when |a| <= lambda", {
+  expect_equal(soft_c(0.3, 1),  soft(0.3, 1))
+  expect_equal(soft_c(-0.8, 1), soft(-0.8, 1))
+})
 
 
 # Do at least 2 tests for lasso objective function below. You are checking output agreements on at least 2 separate inputs
 #################################################
-
+test_that("lasso_c matches R lasso() on simple numeric inputs", {
+  # Test 1
+  X1 <- matrix(c(1, 2, 3, 4), nrow = 2)
+  Y1 <- c(1, 2)
+  beta1 <- c(0.5, -0.2)
+  lambda1 <- 0.1
+  expect_equal(lasso_c(X1, Y1, beta1, lambda1),
+               lasso(X1, Y1, beta1, lambda1))
+  
+  # Test 2
+  X2 <- matrix(rnorm(12), nrow = 3)
+  Y2 <- rnorm(3)
+  beta2 <- rnorm(4)
+  lambda2 <- 0.5
+  expect_equal(lasso_c(X2, Y2, beta2, lambda2),
+               lasso(X2, Y2, beta2, lambda2))
+})
 
 # Do at least 2 tests for fitLASSOstandardized function below. You are checking output agreements on at least 2 separate inputs
 #################################################
